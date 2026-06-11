@@ -10,7 +10,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Create tokens.yaml
+        run: |
+          mkdir -p .config
+          echo "HF_TOKEN: $HF_TOKEN" > .config/tokens.yaml
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
       - name: Run vLLM profiling
+        env:
+            HF_TOKEN: ${{ secrets.HF_TOKEN }}
+            MY_FLAG: "1"
         run: |
           python3 scripts/host/orchestrator.py run \
             --iterations 1
