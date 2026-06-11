@@ -13,8 +13,6 @@ jobs:
       - name: Run vLLM profiling
         run: |
           python3 scripts/host/orchestrator.py run \
-            --image-name vllm-image \
-            --script qwen.py \
             --iterations 1
 
       - name: Upload logs
