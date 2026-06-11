@@ -15,7 +15,6 @@ jobs:
           python3 scripts/host/orchestrator.py run \
             --image-name vllm-image \
             --script qwen.py \
-            --duration 60 \
             --iterations 1
 
       - name: Upload logs
