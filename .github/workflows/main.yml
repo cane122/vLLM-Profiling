@@ -8,20 +8,18 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Basic check
+      - name: Run vLLM profiling
         run: |
-          echo "Runner is working"
-          hostname
-          whoami
+          python3 scripts/host/orchestrator.py run \
+            --image-name vllm-image \
+            --script qwen.py \
+            --duration 60 \
+            --iterations 1
 
-      - name: GPU check
-        run: |
-          rocminfo || true
-          ls /dev/dri
-
-      - name: Docker check
-        run: |
-          docker run --rm hello-world
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: profiling-logs
+          path: .logs/
