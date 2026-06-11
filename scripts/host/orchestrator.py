@@ -14,6 +14,7 @@ import subprocess
 from pathlib import Path
 import yaml
 import os
+import sys
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 
@@ -32,7 +33,11 @@ def prepare_tokens():
 def parse_gpus():
     file_path = PROJECT_ROOT / ".config" / "gpus.yaml"
     if not file_path.exists():
-        subprocess.run(["generate_gpu_yaml.sh"], check=True)
+        subprocess.run(
+            [str(PROJECT_ROOT / "scripts" / "host" / "generate_gpu_yaml.sh")],
+            check=True,
+            cwd=PROJECT_ROOT,
+        )
     with file_path.open("r") as f:
         return [
             gpu for gpu in yaml.safe_load(f)["gpus"] if not gpu.get("disabled", False)
@@ -102,7 +107,8 @@ def run(docker_image, num_procs, script, duration, iterations, models_filter):
                 ]
                 result = subprocess.run(
                     [
-                        "scripts/host/docker_tool.py",
+                        sys.executable,
+                        str(PROJECT_ROOT / "scripts" / "host" / "docker_tool.py"),
                         "run",
                         "--image-name",
                         docker_image,
@@ -116,6 +122,7 @@ def run(docker_image, num_procs, script, duration, iterations, models_filter):
                     ]
                     + script_args,
                     env=os.environ.copy() | env,
+                    cwd=PROJECT_ROOT,
                 )
 
 
