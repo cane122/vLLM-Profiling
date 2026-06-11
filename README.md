@@ -30,6 +30,16 @@ Purpose:
 * Preserve downloaded models between runs
 * Avoid repeated downloads across container executions
 
+### `.cache/vllm/` and `.cache/triton/`
+
+These directories are mounted into Docker containers to persist vLLM and Triton compile caches.
+
+Purpose:
+
+* Reduce repeated `torch.compile` and CUDA graph capture time across runs
+* Make Strix Halo profiling runs closer to steady-state behavior after the first cold start
+* Improve repeatability when comparing baselines across models
+
 ---
 
 ### `.config/`
@@ -145,7 +155,13 @@ Run directly on the host system:
 * `generate_gpu_yaml.sh`
   Helper script to auto-generate a `gpus.yaml` template
 
-  **NOTE**: *This script is currently defunct and you will have to create your own .yaml config based on the one provided in the README and your own setup*
+  Usage:
+
+  ```bash
+  scripts/host/generate_gpu_yaml.sh
+  ```
+
+  This generates `.config/gpus.yaml` from the local `/dev/dri/renderD*` devices.
 
 * Future host utilities will also live here
 
@@ -209,3 +225,21 @@ Notes:
 * Improved automation and validation
 * Expanded profiling support
 * Potential non-Linux support
+
+---
+
+## Portability Notes
+
+* Host scripts now resolve workspace paths from the repository root, so running commands from different working directories is supported.
+* Use `disabled_on` in `yaml/models.yaml` to prevent known-problematic models on specific devices.
+
+Example:
+
+```yaml
+models:
+  - name: Qwen/Qwen3-VL-4B-Instruct
+    type: multimodal
+    script: qwen_vl.py
+    disabled_on:
+      - Strix Halo
+```

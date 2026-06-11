@@ -1,0 +1,27 @@
+name: Strix Halo Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: [self-hosted, strix-halo]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Basic check
+        run: |
+          echo "Runner is working"
+          hostname
+          whoami
+
+      - name: GPU check
+        run: |
+          rocminfo || true
+          ls /dev/dri
+
+      - name: Docker check
+        run: |
+          docker run --rm hello-world

@@ -1,6 +1,17 @@
-**/*cache*/
+# venv
+venv/
+.venv/
+
+# python cache
 __pycache__/
+*.pyc
 
-*.*/
+# generic caches
+**/*cache*/
 
-Dockerfile
+#files
+images/
+
+# logs (optional but recommended)
+.logs/
+.config/

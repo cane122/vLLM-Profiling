@@ -40,6 +40,10 @@ def prepare_env():
 
 def run_container(args, script_args):
     env = prepare_env()
+    hf_cache_dir = Path(args.hf_cache_dir)
+    if not hf_cache_dir.is_absolute():
+        hf_cache_dir = (ROOT_DIR / hf_cache_dir).resolve()
+
     cmd = [
         "docker",
         "run",
@@ -81,34 +85,50 @@ def run_container(args, script_args):
 
     # huggingface cache dir
     hf_cache_container = "/root/.cache/huggingface"
-    Path(args.hf_cache_dir).mkdir(parents=True, exist_ok=True)
-    cmd.extend(["-v", f"{args.hf_cache_dir}:{hf_cache_container}"])
-    print(f"Mounting HuggingFace cache: {args.hf_cache_dir} -> {hf_cache_container}")
+    hf_cache_dir.mkdir(parents=True, exist_ok=True)
+    cmd.extend(["-v", f"{hf_cache_dir}:{hf_cache_container}"])
+    print(f"Mounting HuggingFace cache: {hf_cache_dir} -> {hf_cache_container}")
+
+    # vLLM and Triton compile caches
+    cache_mounts = {
+        "/root/.cache/vllm": ROOT_DIR / ".cache" / "vllm",
+        "/root/.cache/triton": ROOT_DIR / ".cache" / "triton",
+    }
+    for container_cache_dir, host_cache_dir in cache_mounts.items():
+        host_cache_dir.mkdir(parents=True, exist_ok=True)
+        cmd.extend(["-v", f"{host_cache_dir}:{container_cache_dir}"])
+        print(f"Mounting cache: {host_cache_dir} -> {container_cache_dir}")
 
     # local container scripts dir
     scripts_container = str(container_workspace / "scripts")
-    cmd.extend(["-v", f"./scripts/container:{scripts_container}"])
-    print(f"Mounting ./scripts/container -> {scripts_container}")
+    host_scripts_dir = ROOT_DIR / "scripts" / "container"
+    cmd.extend(["-v", f"{host_scripts_dir}:{scripts_container}"])
+    print(f"Mounting {host_scripts_dir} -> {scripts_container}")
 
     # local prompts dir
     prompts_container = str(container_workspace / "prompts")
-    cmd.extend(["-v", f"./prompts:{prompts_container}"])
-    print(f"Mounting ./prompts -> {prompts_container}")
+    host_prompts_dir = ROOT_DIR / "prompts"
+    cmd.extend(["-v", f"{host_prompts_dir}:{prompts_container}"])
+    print(f"Mounting {host_prompts_dir} -> {prompts_container}")
 
     # logs dir
     logs_container = str(container_workspace / "logs")
-    cmd.extend(["-v", f"./.logs:{logs_container}"])
-    print(f"Mounting ./.logs -> {logs_container}")
+    host_logs_dir = ROOT_DIR / ".logs"
+    host_logs_dir.mkdir(parents=True, exist_ok=True)
+    cmd.extend(["-v", f"{host_logs_dir}:{logs_container}"])
+    print(f"Mounting {host_logs_dir} -> {logs_container}")
 
     # images dir
     images_container = str(container_workspace / "images")
-    cmd.extend(["-v", f"./images:{images_container}"])
-    print(f"Mounting ./images -> {images_container}")
+    host_images_dir = ROOT_DIR / "images"
+    cmd.extend(["-v", f"{host_images_dir}:{images_container}"])
+    print(f"Mounting {host_images_dir} -> {images_container}")
 
     # yaml dir
     yaml_container = str(container_workspace / "yaml")
-    cmd.extend(["-v", f"./yaml:{yaml_container}"])
-    print(f"Mounting ./yaml -> {yaml_container}")
+    host_yaml_dir = ROOT_DIR / "yaml"
+    cmd.extend(["-v", f"{host_yaml_dir}:{yaml_container}"])
+    print(f"Mounting {host_yaml_dir} -> {yaml_container}")
 
     shell_cmd = []
 

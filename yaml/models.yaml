@@ -15,9 +15,11 @@ models:
   - name: Qwen/Qwen3-VL-4B-Instruct
     type: multimodal
     script: qwen_vl.py
+    disabled_on:
+      - Strix Halo
     env:
       VLLM_WORKER_MULTIPROC_METHOD: 'spawn'
-      MAX_MODEL_LEN: '20000'
+      MAX_MODEL_LEN: '2048'
       SP_TEMPERATURE: '0.0'
       SP_MAX_TOKENS: '1024'
 #  - name: deepseek-ai/DeepSeek-OCR
