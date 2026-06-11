@@ -13,9 +13,7 @@ jobs:
       - name: Create tokens.yaml
         run: |
           mkdir -p .config
-          echo "HF_TOKEN: $HF_TOKEN" > .config/tokens.yaml
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          echo "tokens: {}" > .config/tokens.yaml
       - name: Run vLLM profiling
         env:
             HF_TOKEN: ${{ secrets.HF_TOKEN }}
