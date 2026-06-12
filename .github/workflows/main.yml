@@ -10,7 +10,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # --- THIS IS THE NEW CACHE STEP ---
       - name: Cache Hugging Face & Model Compilations
         uses: actions/cache@v4
         with:
@@ -18,11 +17,11 @@ jobs:
             .cache/huggingface
             .cache/vllm
             .cache/triton
-          # This key identifies your cache bundle. If the key matches next run, it restores instantly.
           key: ${{ runner.os }}-vllm-profiling-cache
           restore-keys: |
             ${{ runner.os }}-vllm-profiling-cache
 
+      # 1. Clean the workspace directories safely
       - name: Prepare workspace
         run: |
           mkdir -p .config
@@ -39,22 +38,31 @@ jobs:
         run: |
           scripts/host/generate_gpu_yaml.sh
 
+      # 2. Check/Pull the image (Docker skips downloading layers if they already exist)
       - name: Pull Docker image
         run: |
           docker pull hyoon11/vllm-dev:20260121_43_py3.12_torch2.9_triton3.5_navi_upstream_6a09612_ubuntu24.04
 
+      # 3. Run the container to profile the models (Fixed orchestrator argument syntax)
       - name: Run vLLM profiling
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           PYTHONDONTWRITEBYTECODE: "1"
         run: |
           set -x
-          python3 scripts/host/orchestrator.py run \
-            Qwen/Qwen3-4B \
-            --duration 60
+          python3 scripts/host/orchestrator.py \
+            --duration 60 \
+            Qwen/Qwen3-4B
 
       - name: Upload logs
         uses: actions/upload-artifact@v4
         with:
           name: profiling-logs
           path: .logs/
+
+      # 4. CLEAN UP AT THE END (Optional)
+      # Run this only if you are low on disk space and explicitly want to wipe the image after finishing.
+      - name: Clean up Docker Image
+        if: always() # Runs even if the profiling step fails
+        run: |
+          docker rmi hyoon11/vllm-dev:20260121_43_py3.12_torch2.9_triton3.5_navi_upstream_6a09612_ubuntu24.04
