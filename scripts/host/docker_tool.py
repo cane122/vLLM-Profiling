@@ -146,7 +146,7 @@ def run_container(args, script_args):
     shell_cmd = []
 
     shell_cmd.append(
-        f"pip install --no-cache-dir -r {scripts_container}/requirements.txt"
+        f"pip install --no-cache-dir --user -r {scripts_container}/requirements.txt"
     )
 
     if args.script:
