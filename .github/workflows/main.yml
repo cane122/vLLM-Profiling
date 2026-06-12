@@ -10,18 +10,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create tokens.yaml
+      # ✅ Prepare environment (critical)
+      - name: Prepare workspace
         run: |
           mkdir -p .config
+          mkdir -p .logs
+          mkdir -p .cache/vllm
+          mkdir -p .cache/triton
+
+      # ✅ Fix tokens format (important)
+      - name: Create tokens.yaml
+        run: |
           echo "tokens: {}" > .config/tokens.yaml
+
+      # ✅ Ensure GPU config exists
+      - name: Generate GPU config
+        run: |
+          scripts/host/generate_gpu_yaml.sh
+
+      # ✅ Ensure Docker image exists
+      - name: Pull Docker image
+        run: |
+          docker pull hyoon11/vllm-dev:20260121_43_py3.12_torch2.9_triton3.5_navi_upstream_6a09612_ubuntu24.04
+
+      # ✅ RUN MODEL (THIS IS THE REAL FIX)
       - name: Run vLLM profiling
         env:
-            HF_TOKEN: ${{ secrets.HF_TOKEN }}
-            MY_FLAG: "1"
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          set -x
           python3 scripts/host/orchestrator.py run \
-            --iterations 1
+            Qwen/Qwen3-4B \
+            --duration 60
 
+      # ✅ Upload logs (now they'll exist)
       - name: Upload logs
         uses: actions/upload-artifact@v4
         with:
