@@ -43,13 +43,16 @@ def run_container(args, script_args):
     hf_cache_dir = Path(args.hf_cache_dir)
     if not hf_cache_dir.is_absolute():
         hf_cache_dir = (ROOT_DIR / hf_cache_dir).resolve()
-    
-    uid_gid = f"{os.getuid()}:{os.getgid()}"
+
+    # Dynamic User and Group IDs matching your host system user
+    host_uid = os.getuid()
+    host_gid = os.getgid()
 
     cmd = [
         "docker",
         "run",
-        "--user", uid_gid,
+        # Force the container to run as the host user, preventing root locks
+        "--user", f"{host_uid}:{host_gid}",
         # first, unpack environment key-value pairs into a list of k=v strings
         # then unpack the kv pairs into lists of ["-e", kv]
         *[item for key, value in env.items() for item in ("-e", f"{key}={value}")],
@@ -86,18 +89,22 @@ def run_container(args, script_args):
     # mount dirs from host to container
     container_workspace = Path("/workspace")
 
+    # Set up a generic home cache folder inside the container that our user can write to
+    container_home_cache = "/tmp/.cache"
+
     # huggingface cache dir
-    container_cache_base = "/home/user/.cache" 
-    
-    # HuggingFace cache
-    hf_cache_container = f"{container_cache_base}/huggingface"
+    hf_cache_container = f"{container_home_cache}/huggingface"
     hf_cache_dir.mkdir(parents=True, exist_ok=True)
     cmd.extend(["-v", f"{hf_cache_dir}:{hf_cache_container}"])
     
-    # vLLM and Triton caches
+    # Overwrite the HF environment variable so vLLM looks in our writable path
+    cmd.extend(["-e", f"HF_HOME={hf_cache_container}"])
+    print(f"Mounting HuggingFace cache: {hf_cache_dir} -> {hf_cache_container}")
+
+    # vLLM and Triton compile caches
     cache_mounts = {
-        f"{container_cache_base}/vllm": ROOT_DIR / ".cache" / "vllm",
-        f"{container_cache_base}/triton": ROOT_DIR / ".cache" / "triton",
+        f"{container_home_cache}/vllm": ROOT_DIR / ".cache" / "vllm",
+        f"{container_home_cache}/triton": ROOT_DIR / ".cache" / "triton",
     }
     for container_cache_dir, host_cache_dir in cache_mounts.items():
         host_cache_dir.mkdir(parents=True, exist_ok=True)
