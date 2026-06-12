@@ -10,30 +10,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ✅ Prepare environment (critical)
+      # --- THIS IS THE NEW CACHE STEP ---
+      - name: Cache Hugging Face & Model Compilations
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache/huggingface
+            .cache/vllm
+            .cache/triton
+          # This key identifies your cache bundle. If the key matches next run, it restores instantly.
+          key: ${{ runner.os }}-vllm-profiling-cache
+          restore-keys: |
+            ${{ runner.os }}-vllm-profiling-cache
+
       - name: Prepare workspace
         run: |
           mkdir -p .config
           mkdir -p .logs
+          mkdir -p .cache/huggingface
           mkdir -p .cache/vllm
           mkdir -p .cache/triton
 
-      # ✅ Fix tokens format (important)
       - name: Create tokens.yaml
         run: |
           echo "tokens: {}" > .config/tokens.yaml
 
-      # ✅ Ensure GPU config exists
       - name: Generate GPU config
         run: |
           scripts/host/generate_gpu_yaml.sh
 
-      # ✅ Ensure Docker image exists
       - name: Pull Docker image
         run: |
           docker pull hyoon11/vllm-dev:20260121_43_py3.12_torch2.9_triton3.5_navi_upstream_6a09612_ubuntu24.04
 
-      # ✅ RUN MODEL (THIS IS THE REAL FIX)
       - name: Run vLLM profiling
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -43,7 +52,6 @@ jobs:
             Qwen/Qwen3-4B \
             --duration 60
 
-      # ✅ Upload logs (now they'll exist)
       - name: Upload logs
         uses: actions/upload-artifact@v4
         with:
