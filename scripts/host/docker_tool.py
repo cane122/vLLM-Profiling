@@ -43,10 +43,13 @@ def run_container(args, script_args):
     hf_cache_dir = Path(args.hf_cache_dir)
     if not hf_cache_dir.is_absolute():
         hf_cache_dir = (ROOT_DIR / hf_cache_dir).resolve()
+    
+    uid_gid = f"{os.getuid()}:{os.getgid()}"
 
     cmd = [
         "docker",
         "run",
+        "--user", uid_gid,
         # first, unpack environment key-value pairs into a list of k=v strings
         # then unpack the kv pairs into lists of ["-e", kv]
         *[item for key, value in env.items() for item in ("-e", f"{key}={value}")],
@@ -84,15 +87,17 @@ def run_container(args, script_args):
     container_workspace = Path("/workspace")
 
     # huggingface cache dir
-    hf_cache_container = "/root/.cache/huggingface"
+    container_cache_base = "/home/user/.cache" 
+    
+    # HuggingFace cache
+    hf_cache_container = f"{container_cache_base}/huggingface"
     hf_cache_dir.mkdir(parents=True, exist_ok=True)
     cmd.extend(["-v", f"{hf_cache_dir}:{hf_cache_container}"])
-    print(f"Mounting HuggingFace cache: {hf_cache_dir} -> {hf_cache_container}")
-
-    # vLLM and Triton compile caches
+    
+    # vLLM and Triton caches
     cache_mounts = {
-        "/root/.cache/vllm": ROOT_DIR / ".cache" / "vllm",
-        "/root/.cache/triton": ROOT_DIR / ".cache" / "triton",
+        f"{container_cache_base}/vllm": ROOT_DIR / ".cache" / "vllm",
+        f"{container_cache_base}/triton": ROOT_DIR / ".cache" / "triton",
     }
     for container_cache_dir, host_cache_dir in cache_mounts.items():
         host_cache_dir.mkdir(parents=True, exist_ok=True)
