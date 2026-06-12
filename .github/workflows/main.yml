@@ -46,6 +46,7 @@ jobs:
       - name: Run vLLM profiling
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          PYTHONDONTWRITEBYTECODE: "1"
         run: |
           set -x
           python3 scripts/host/orchestrator.py run \
