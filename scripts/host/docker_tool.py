@@ -53,6 +53,7 @@ def run_container(args, script_args):
         "run",
         # Force the container to run as the host user, preventing root locks
         "--user", f"{host_uid}:{host_gid}",
+        "-e", "PYTHONDONTWRITEBYTECODE=1",
         # first, unpack environment key-value pairs into a list of k=v strings
         # then unpack the kv pairs into lists of ["-e", kv]
         *[item for key, value in env.items() for item in ("-e", f"{key}={value}")],
