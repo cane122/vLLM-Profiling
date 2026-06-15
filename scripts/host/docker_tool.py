@@ -106,6 +106,7 @@ def run_container(args, script_args):
     cache_mounts = {
         f"{container_home_cache}/vllm": Path.home() / ".cache" / "vllm",
         f"{container_home_cache}/triton": Path.home() / ".cache" / "triton",
+        "/root/.cache/pip": Path.home() / ".cache" / "pip",
     }
     for container_cache_dir, host_cache_dir in cache_mounts.items():
         host_cache_dir.mkdir(parents=True, exist_ok=True)
@@ -125,7 +126,7 @@ def run_container(args, script_args):
     print(f"Mounting {host_prompts_dir} -> {prompts_container}")
 
     # logs dir
-    logs_container = str(container_workspace / "logs")
+    logs_container = str(container_workspace / ".logs")
     host_logs_dir = ROOT_DIR / ".logs"
     host_logs_dir.mkdir(parents=True, exist_ok=True)
     cmd.extend(["-v", f"{host_logs_dir}:{logs_container}"])
@@ -146,7 +147,7 @@ def run_container(args, script_args):
     shell_cmd = []
 
     shell_cmd.append(
-        f"pip install --no-cache-dir -r {scripts_container}/requirements.txt"
+        f"pip install -r {scripts_container}/requirements.txt"
     )
 
     if args.script:

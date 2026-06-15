@@ -123,6 +123,7 @@ def run(docker_image, num_procs, script, duration, iterations, models_filter):
                     + script_args,
                     env=os.environ.copy() | env,
                     cwd=PROJECT_ROOT,
+                    check=True,
                 )
 
 
