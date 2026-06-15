@@ -104,8 +104,8 @@ def run_container(args, script_args):
 
     # vLLM and Triton compile caches
     cache_mounts = {
-        f"{container_home_cache}/vllm": ROOT_DIR / ".cache" / "vllm",
-        f"{container_home_cache}/triton": ROOT_DIR / ".cache" / "triton",
+        f"{container_home_cache}/vllm": Path.home() / ".cache" / "vllm",
+        f"{container_home_cache}/triton": Path.home() / ".cache" / "triton",
     }
     for container_cache_dir, host_cache_dir in cache_mounts.items():
         host_cache_dir.mkdir(parents=True, exist_ok=True)
@@ -191,7 +191,7 @@ def parse_args():
     run_parser.add_argument(
         "--hf-cache-dir",
         help="Location of host folder which will be mounter under /root/.cache/huggingface in docker container.",
-        default="./.cache/huggingface",
+        default=str(Path.home() / ".cache" / "huggingface"),
     )
     run_parser.add_argument(
         "--device", help="/dev/dri/<dir> location of the device", required=True
