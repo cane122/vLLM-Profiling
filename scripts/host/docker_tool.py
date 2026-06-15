@@ -126,7 +126,7 @@ def run_container(args, script_args):
 
     # logs dir
     logs_container = str(container_workspace / "logs")
-    host_logs_dir = ROOT_DIR / ".logs"
+    host_logs_dir = ROOT_DIR / "logs"
     host_logs_dir.mkdir(parents=True, exist_ok=True)
     cmd.extend(["-v", f"{host_logs_dir}:{logs_container}"])
     print(f"Mounting {host_logs_dir} -> {logs_container}")
