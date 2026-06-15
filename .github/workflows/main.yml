@@ -53,7 +53,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: profiling-logs
-          path: .logs/
+          path: logs/
 
       # 6. POST-EXECUTION FIX
       - name: Post-clean workspace permissions
