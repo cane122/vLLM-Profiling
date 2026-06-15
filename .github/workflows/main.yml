@@ -60,8 +60,3 @@ jobs:
         if: always()
         run: |
           docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace alpine sh -c "rm -rf .logs .config"
-
-      - name: Clean up Docker Image
-        if: always()
-        run: |
-          docker rmi hyoon11/vllm-dev:20260121_43_py3.12_torch2.9_triton3.5_navi_upstream_6a09612_ubuntu24.04
