@@ -59,4 +59,4 @@ jobs:
       - name: Post-clean workspace permissions
         if: always()
         run: |
-          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace alpine sh -c "rm -rf .logs .config"
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace alpine sh -c "rm -rf logs .config"

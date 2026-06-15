@@ -13,5 +13,6 @@ __pycache__/
 images/
 
 # logs (optional but recommended)
+logs/
 .logs/
 .config/
