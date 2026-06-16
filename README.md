@@ -211,6 +211,19 @@ Notes:
 
 ---
 
+## CI/CD Automation (GitHub Self-Hosted Runner)
+
+This repository includes automated pipeline support via a **self-hosted GitHub Actions runner** deployed on a native **Strix Halo** system. 
+
+The automated pipeline (`.github/workflows/`) executes the following lifecycle on code push:
+1. **Containerized Execution:** Automatically spins up the required AMD ROCm dev container environment (`hyoon11/vllm-dev`).
+2. **Persistent Caching:** Binds host-level directories (`~/.cache/huggingface`, `~/.cache/vllm`, `~/.cache/triton`) to guarantee that model weights are **chased outside the container** and never re-downloaded between CI runs.
+3. **Hardware Isolation & Passthrough:** Maps bare-metal drivers (`/dev/kfd`, `/dev/dri/renderD128`) giving Docker native access to the APU/GPU infrastructure.
+4. **User-Space Ownership Restoration:** Runs an automated post-execution permissions sweep via an Alpine environment to dynamically `chown` root-generated logs back to host user space (`ocankovic`), eliminating workspace locking.
+5. **Artifact Storage:** Automatically zips and posts all generated profiling files as native GitHub Workflow artifacts (`upload-artifact@v4`).
+
+---
+
 ## Notes & Limitations
 
 * Linux-only support at this stage
